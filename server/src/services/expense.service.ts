@@ -6,6 +6,7 @@ import {
   calculateShareBasedSplit,
 } from './calculation.service';
 import { createAuditLog } from './audit.service';
+import { logger } from '../utils/logger';
 import type { CreateExpenseInput, EditExpenseInput } from '../validators/expense.validator';
 import type { SplitType, ShareResult } from '../types';
 
@@ -98,6 +99,8 @@ export async function createExpense(
         participants: shares.map(s => ({ userId: s.userId, shareAmountPaise: Number(s.shareAmountPaise) })),
       },
     }, tx);
+
+    logger.info({ roomId, expenseId: expense.id, createdById, amountPaise: expense.amountPaise }, 'Expense created successfully');
 
     // Return full expense with payments and participants
     return tx.expense.findUnique({
@@ -289,6 +292,8 @@ export async function editExpense(
       reason: input.reason || null,
     }, tx);
 
+    logger.info({ roomId, expenseId, userId }, 'Expense edited successfully');
+
     return newExpense;
   });
 }
@@ -325,6 +330,7 @@ export async function voidExpense(
       });
 
       if (laterSettlements > 0) {
+        logger.warn({ roomId, expenseId, userId, laterSettlements }, 'Attempted to void expense with later settlements without force flag');
         throw Object.assign(
           new Error('This expense may already be reflected in a settlement. Voiding it will change current balances. Re-submit with force=true to proceed.'),
           {
@@ -356,6 +362,8 @@ export async function voidExpense(
       },
       reason: options.reason || null,
     }, tx);
+
+    logger.info({ roomId, expenseId, userId, force: options.force }, 'Expense voided successfully');
 
     return { id: expenseId, status: 'VOIDED' as const };
   });

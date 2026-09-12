@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import posthog from 'posthog-js';
 import { useAuth } from '../context/AuthContext';
 import { useRoomBalances } from '../hooks/useRoomBalances';
 import { roomApi } from '../api/room.api';
@@ -22,6 +23,7 @@ export default function RoomDashboardPage() {
 
   useEffect(() => {
     if (!roomId) return;
+    posthog.capture('room_joined');
     roomApi.getDetails(roomId).then(res => {
       setRoom(res.data);
       setRoomLoading(false);

@@ -26,6 +26,7 @@ export interface RoomMember {
   role: 'ADMIN' | 'MEMBER';
   status: 'ACTIVE' | 'INACTIVE';
   joinedAt: string;
+  upiId?: string | null;
 }
 
 export interface RoomDetails extends Room {
@@ -90,6 +91,7 @@ export interface Settlement {
   toUser?: { id: string; name: string };
   amountPaise: number;
   paymentMethod: string;
+  proofUrl?: string | null;
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
   note?: string;
   createdAt: string;

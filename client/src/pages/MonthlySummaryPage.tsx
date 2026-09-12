@@ -40,7 +40,7 @@ export default function MonthlySummaryPage() {
     <div className="app-shell">
       <div className="app-content">
         <div className="page-header">
-          <button className="back-btn" onClick={() => navigate(-1)}>
+          <button className="back-btn" aria-label="Go back" onClick={() => navigate(-1)}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <h1 className="page-title">Monthly Summary</h1>

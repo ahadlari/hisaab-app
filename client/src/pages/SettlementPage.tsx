@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import * as imageConversion from 'image-conversion';
+import posthog from 'posthog-js';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useRoomBalances } from '../hooks/useRoomBalances';
@@ -50,11 +51,12 @@ export default function SettlementPage() {
       setToUserId(suggestion.toUserId);
       setAmount(String(suggestion.amountPaise / 100));
       setShowManual(true);
+      posthog.capture('settlement_suggestion_used');
     }
   }, [suggestion]);
 
   const getName = (userId: string) => members.find(m => m.userId === userId)?.name || 'Unknown';
-  const getUpiId = (userId: string) => members.find(m => m.userId === userId)?.user?.upiId;
+  const getUpiId = (userId: string) => members.find(m => m.userId === userId)?.upiId;
   const getColorIdx = (userId: string) => members.findIndex(m => m.userId === userId);
 
   const handleSettle = async () => {
@@ -104,6 +106,11 @@ export default function SettlementPage() {
         note: note || undefined,
       });
 
+      posthog.capture('settlement_recorded', {
+        paymentMethod: paymentMethod,
+        isCash: paymentMethod === 'CASH'
+      });
+
       if (res.warning) setWarning(res.warning);
       showToast('Payment request sent for verification!', 'success');
       setShowManual(false);
@@ -143,7 +150,7 @@ export default function SettlementPage() {
     <div className="app-shell">
       <div className="app-content">
         <div className="page-header">
-          <button className="back-btn" onClick={() => navigate(`/rooms/${roomId}`)}>
+          <button className="back-btn" aria-label="Go back" onClick={() => navigate(`/rooms/${roomId}`)}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
           <h1 className="page-title">Settle Up</h1>

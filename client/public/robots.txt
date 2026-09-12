@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Disallow: /rooms/
+Disallow: /api/
+
+Sitemap: https://hisaab.com/sitemap.xml

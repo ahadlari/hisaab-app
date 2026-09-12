@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!token) { setLoading(false); return; }
     try {
       const res = await authApi.getMe();
-      setUser(res.data);
+      setUser(res.data.user);
     } catch {
       localStorage.removeItem('hisaab_token');
       setToken(null);

@@ -1,6 +1,7 @@
 import prisma from '../config/db';
 import { createAuditLog } from './audit.service';
 import { getRoomBalances } from './room.service';
+import { logger } from '../utils/logger';
 import type { CreateSettlementInput, EditSettlementInput, VerifySettlementInput } from '../validators/settlement.validator';
 
 /**
@@ -60,6 +61,8 @@ export async function createSettlement(
 
     return s;
   });
+
+  logger.info({ roomId, settlementId: settlement.id, userId, warning: !!warning }, 'Settlement created');
 
   return { settlement, warning };
 }
@@ -132,6 +135,8 @@ export async function editSettlement(
       reason: input.reason || null,
     }, tx);
 
+    logger.info({ roomId, settlementId, userId }, 'Settlement edited');
+
     return updated;
   });
 }
@@ -172,6 +177,8 @@ export async function cancelSettlement(
       },
       reason: reason || null,
     }, tx);
+
+    logger.info({ roomId, settlementId, userId }, 'Settlement cancelled');
 
     return { id: settlementId, status: 'CANCELLED' as const };
   });
@@ -214,6 +221,8 @@ export async function verifySettlement(
       newData: { status: input.status },
       reason: input.reason || null,
     }, tx);
+
+    logger.info({ roomId, settlementId, userId, status: input.status }, 'Settlement verified');
 
     return updated;
   });

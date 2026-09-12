@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger';
 
 /**
  * Global error handling middleware.
@@ -10,7 +11,7 @@ export function errorMiddleware(
   res: Response,
   _next: NextFunction
 ): void {
-  console.error('[Error]', err.message, err.stack);
+  logger.error(err, err.message);
 
   const statusCode = err.statusCode || 500;
   const code = err.code || 'INTERNAL_ERROR';

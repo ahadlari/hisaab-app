@@ -1,4 +1,5 @@
 import prisma from '../config/db';
+import { logger } from '../utils/logger';
 import type { AuditAction } from '../types';
 
 /**
@@ -17,7 +18,7 @@ export async function createAuditLog(params: {
 }, tx?: any) {
   const client = tx || prisma;
   
-  return client.auditLog.create({
+  const auditLog = await client.auditLog.create({
     data: {
       roomId: params.roomId,
       userId: params.userId,
@@ -29,4 +30,8 @@ export async function createAuditLog(params: {
       reason: params.reason || undefined,
     },
   });
+
+  logger.info({ action: params.action, entityType: params.entityType, entityId: params.entityId, roomId: params.roomId }, `Audit log written: ${params.action}`);
+
+  return auditLog;
 }

@@ -1,4 +1,6 @@
 import prisma from '../config/db';
+import * as Sentry from '@sentry/node';
+import { logger } from '../utils/logger';
 import crypto from 'crypto';
 import {
   calculateBalances,
@@ -132,7 +134,7 @@ export async function getRoomDetails(roomId: string) {
     where: { id: roomId },
     include: {
       members: {
-        include: { user: { select: { id: true, name: true, email: true } } },
+        include: { user: { select: { id: true, name: true, email: true, upiId: true } } },
         orderBy: { joinedAt: 'asc' },
       },
     },
@@ -153,6 +155,7 @@ export async function getRoomDetails(roomId: string) {
       role: m.role,
       status: m.status,
       joinedAt: m.joinedAt.toISOString(),
+      upiId: m.user.upiId,
     })),
   };
 }
@@ -201,7 +204,16 @@ export async function getRoomBalances(roomId: string): Promise<{
 
   // Validate invariant
   if (!validateBalanceInvariant(balances)) {
-    console.error(`[BALANCE INVARIANT VIOLATION] roomId=${roomId}`, JSON.stringify(balances, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+    const errorMsg = `[BALANCE INVARIANT VIOLATION] roomId=${roomId}`;
+    logger.error({ roomId, balances: JSON.stringify(balances, (_, v) => typeof v === 'bigint' ? v.toString() : v) }, errorMsg);
+    
+    Sentry.withScope((scope) => {
+      scope.setTag("critical", "balance_invariant_violation");
+      scope.setExtra("roomId", roomId);
+      scope.setExtra("balances", JSON.stringify(balances, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+      Sentry.captureException(new Error(errorMsg));
+    });
+
     throw Object.assign(
       new Error('Unable to load balances. Please try again.'),
       { statusCode: 500, code: 'BALANCE_INTEGRITY_ERROR' }
